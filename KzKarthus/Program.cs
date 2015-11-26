@@ -1,0 +1,313 @@
+using EloBuddy;
+using EloBuddy.SDK;
+using EloBuddy.SDK.Enumerations;
+using EloBuddy.SDK.Events;
+using EloBuddy.SDK.Menu.Values;
+using EloBuddy.SDK.Rendering;
+using Color = System.Drawing.Color;
+using System;
+using System.Linq;
+using SharpDX;
+
+namespace KzKarthus
+{
+    public static class Program
+    {
+        public static AIHeroClient Player
+        {
+            get { return ObjectManager.Player; }
+        }
+        public static string version = "2.0.0.0";
+        public static AIHeroClient Target = null;
+        public static int qOff = 0, wOff = 0, eOff = 0, rOff = 0;
+        public static int[] AbilitySequence;
+        public static Spell.Skillshot Q;
+        public static Spell.Skillshot W;
+        public static Spell.Active E;
+        public static Spell.Skillshot R;
+        internal static void Main(string[] args)
+        {
+            Loading.OnLoadingComplete += OnLoadingComplete;
+            Bootstrap.Init(null);
+        }
+        private static void OnLoadingComplete(EventArgs args)
+        {
+            if (Player.ChampionName != "Karthus") return;
+            AbilitySequence = new int[] { 1, 3, 1, 2, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2 };
+            Chat.Print("KzKarthus Loaded!", Color.CornflowerBlue);
+            Chat.Print("Enjoy the game and DONT FEED!", Color.Red);
+            KzKarthusMenu.loadMenu();
+            Game.OnTick += GameOnTick;
+            MyActivator.loadSpells();
+            Game.OnUpdate += OnGameUpdate;
+
+            #region Skill
+            Q = new Spell.Skillshot(SpellSlot.Q, 875, SkillShotType.Circular, 1000, int.MaxValue, 160);
+            W = new Spell.Skillshot(SpellSlot.W, 1000, SkillShotType.Circular, 500, int.MaxValue, 70);
+            E = new Spell.Active(SpellSlot.E, 505);
+            R = new Spell.Skillshot(SpellSlot.R, 25000, SkillShotType.Circular, 3000, int.MaxValue, int.MaxValue);
+            #endregion
+
+            Gapcloser.OnGapcloser += AntiGapCloser;
+            Drawing.OnDraw += GameOnDraw;
+        }
+        public static void GameOnDraw(EventArgs args)
+        {
+            if (KzKarthusMenu.nodraw()) return;
+
+            if (!KzKarthusMenu.onlyReady())
+            {
+                if (KzKarthusMenu.drawingsQ())
+                {
+                    new Circle() { Color = Color.AliceBlue, Radius = Q.Range, BorderWidth = 2f }.Draw(Player.Position);
+                }
+                if (KzKarthusMenu.drawingsW())
+                {
+                    new Circle() { Color = Color.OrangeRed, Radius = W.Range, BorderWidth = 2f }.Draw(Player.Position);
+                }
+                if (KzKarthusMenu.drawingsE())
+                {
+                    new Circle() { Color = Color.Cyan, Radius = E.Range, BorderWidth = 2f }.Draw(Player.Position);
+                }
+                if (KzKarthusMenu.drawingsR())
+                {
+                    new Circle() { Color = Color.SkyBlue, Radius = R.Range, BorderWidth = 2f }.Draw(Player.Position);
+                }
+            }
+            else
+            {
+                if (!Q.IsOnCooldown && KzKarthusMenu.drawingsQ())
+                {
+
+                    new Circle() { Color = Color.AliceBlue, Radius = 340, BorderWidth = 2f }.Draw(Player.Position);
+                }
+                if (!W.IsOnCooldown && KzKarthusMenu.drawingsW())
+                {
+
+                    new Circle() { Color = Color.OrangeRed, Radius = 800, BorderWidth = 2f }.Draw(Player.Position);
+                }
+                if (!E.IsOnCooldown && KzKarthusMenu.drawingsE())
+                {
+
+                    new Circle() { Color = Color.Cyan, Radius = 500, BorderWidth = 2f }.Draw(Player.Position);
+                }
+                if (!R.IsOnCooldown && KzKarthusMenu.drawingsR())
+                {
+
+                    new Circle() { Color = Color.SkyBlue, Radius = 500, BorderWidth = 2f }.Draw(Player.Position);
+                }
+            }
+        }
+      
+        private static void OnGameUpdate(EventArgs args)
+        {
+            if (MyActivator.heal != null)
+                Heal();
+            if (MyActivator.ignite != null)
+                ignite();
+            Player.SetSkinId(KzKarthusMenu.skinId());
+        }
+        public static void LevelUpSpells()
+        {
+            int qL = Player.Spellbook.GetSpell(SpellSlot.Q).Level + qOff;
+            int wL = Player.Spellbook.GetSpell(SpellSlot.W).Level + wOff;
+            int eL = Player.Spellbook.GetSpell(SpellSlot.E).Level + eOff;
+            int rL = Player.Spellbook.GetSpell(SpellSlot.R).Level + rOff;
+            if (qL + wL + eL + rL < ObjectManager.Player.Level)
+            {
+                int[] level = new int[] { 0, 0, 0, 0 };
+                for (int i = 0; i < ObjectManager.Player.Level; i++)
+                {
+                    level[AbilitySequence[i] - 1] = level[AbilitySequence[i] - 1] + 1;
+                }
+                if (qL < level[0]) ObjectManager.Player.Spellbook.LevelSpell(SpellSlot.Q);
+                if (wL < level[1]) ObjectManager.Player.Spellbook.LevelSpell(SpellSlot.W);
+                if (eL < level[2]) ObjectManager.Player.Spellbook.LevelSpell(SpellSlot.E);
+                if (rL < level[3]) ObjectManager.Player.Spellbook.LevelSpell(SpellSlot.R);
+            }
+        }
+
+        private static void AntiGapCloser(AIHeroClient sender, Gapcloser.GapcloserEventArgs e)
+        {
+            if (!e.Sender.IsValidTarget() || !KzKarthusMenu.gapcloserQ() || e.Sender.Type != Player.Type || !e.Sender.IsEnemy)
+            {
+                return;
+            }
+
+            Q.Cast(e.Sender);
+        }
+        public static void ignite()
+        {
+            var autoIgnite = TargetSelector.GetTarget(MyActivator.ignite.Range, DamageType.True);
+            if (autoIgnite != null && autoIgnite.Health <= DamageLibrary.GetSpellDamage(Player, autoIgnite, MyActivator.ignite.Slot) || autoIgnite != null && autoIgnite.HealthPercent <= KzKarthusMenu.spellsIgniteFocus())
+                MyActivator.ignite.Cast(autoIgnite);
+
+        }
+        public static void Heal()
+        {
+            if (MyActivator.heal.IsReady() && Player.HealthPercent <= KzKarthusMenu.spellsHealHP())
+                MyActivator.heal.Cast();
+        }
+        private static void GameOnTick(EventArgs args)
+        {
+            if (KzKarthusMenu.lvlup()) LevelUpSpells();
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo)) OnCombo();
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Harass)) OnHarrass();
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear)) OnLaneClear();
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.JungleClear)) OnJungle();
+            KillSteal();
+            AutoCast();
+        }
+        public static void AutoCast()
+        {
+            if (KzKarthusMenu.comboAC())
+            {
+                if (Player.IsDead || Player.IsZombie)
+                {
+                    if (KzKarthusMenu.comboQ() && Q.IsReady())
+                    {
+                        var Target = TargetSelector.GetTarget(Q.Range, DamageType.Magical);
+                        if (Target != null && Target.IsValid)
+                        {
+                            if (Prediction.Position.PredictCircularMissile(Target, Q.Range, Q.Width, Q.CastDelay, Q.Speed).HitChance >= HitChance.High)
+                            {
+                                Q.Cast(Target);
+                            }
+                        }
+                    }
+                    if (KzKarthusMenu.comboW() && W.IsReady())
+                    {
+                        var Target = TargetSelector.GetTarget(W.Range, DamageType.Magical);
+                        var Pred = W.GetPrediction(Target);
+                        if (Target != null && Target.IsValid)
+                        {
+                            if (Pred.HitChance >= HitChance.High)
+                            {
+                                W.Cast(Pred.CastPosition);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void KillSteal()
+        {
+            foreach (var Target in EntityManager.Heroes.Enemies.Where(hero =>!hero.IsDead && !hero.IsZombie && hero.HealthPercent <= 25))
+            {
+                if (KzKarthusMenu.killstealQ() && Q.IsReady() && Target.IsValidTarget(Q.Range) && Target.Health + Target.AttackShield < Player.GetSpellDamage(Target, SpellSlot.Q, DamageLibrary.SpellStages.Default))
+                {
+                    if (Prediction.Position.PredictCircularMissile(Target, Q.Range, Q.Width, Q.CastDelay, Q.Speed).HitChance >= HitChance.High)
+                    {
+                        Q.Cast(Target);
+                    }
+                }
+                if (KzKarthusMenu.killstealR() && R.IsReady() && Target.IsValidTarget(R.Range) && Target.Health + Target.AttackShield < Player.GetSpellDamage(Target, SpellSlot.R, DamageLibrary.SpellStages.Default))
+                {
+                    R.Cast();
+                }
+            }
+        }
+
+        public static void OnLaneClear()
+        {
+            var count = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.ServerPosition, Player.AttackRange, false).Count();
+            var source = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Player.ServerPosition, Player.AttackRange).OrderByDescending(a => a.MaxHealth).FirstOrDefault();
+            if (count == 0) return;
+            if (Q.IsReady() && KzKarthusMenu.lcQ() && KzKarthusMenu.lcQ1() <= count && Player.ManaPercent >= KzKarthusMenu.lcM())
+            {
+                Q.Cast(source.Position);
+            }
+            if (E.IsReady() && KzKarthusMenu.lcE() && KzKarthusMenu.lcE2() <= count && Player.ManaPercent >= KzKarthusMenu.lcM())
+            {
+                if (Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
+                    E.Cast();
+            }
+            else
+            {
+                if (Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 2)
+                    E.Cast();
+            }
+        }
+        public static void OnJungle()
+        {
+            var source = EntityManager.MinionsAndMonsters.GetJungleMonsters(Player.ServerPosition, Q.Range).OrderByDescending(a => a.MaxHealth).FirstOrDefault();
+            if (Q.IsReady() && KzKarthusMenu.jungleQ() && source.Distance(Player) <= Q.Range)
+            {
+                Q.Cast(source.Position);
+            }
+
+            if (KzKarthusMenu.jungleE() && E.IsReady() && source.Distance(Player) <= E.Range)
+            {
+                if (Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
+                    E.Cast();
+            }
+            else
+            {
+                if (Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 2)
+                    E.Cast();
+            }
+        }
+        private static void OnHarrass()
+        {
+            var Target = TargetSelector.GetTarget(Q.Range, DamageType.Physical);
+
+            if (!Target.IsValidTarget())
+            {
+                return;
+            }
+            if (KzKarthusMenu.harassQ() && Target.IsValidTarget(Q.Range) && Player.ManaPercent >= KzKarthusMenu.harassQE())
+            {
+                if (Prediction.Position.PredictCircularMissile(Target, Q.Range, Q.Width, Q.CastDelay, Q.Speed).HitChance >= HitChance.High)
+                {
+                    Q.Cast(Target);
+                }
+            }
+            if (KzKarthusMenu.harassE() && E.IsReady() && Target.IsValidTarget(E.Range) && Player.ManaPercent >= KzKarthusMenu.harassQE())
+            {
+                if (Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
+                    E.Cast();
+            }
+            else
+            {
+                if (Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 2)
+                    E.Cast();
+            }
+        }
+        private static void OnCombo()
+        {
+            var Target = TargetSelector.GetTarget(Q.Range, DamageType.Magical);
+            if (!Target.IsValidTarget(Q.Range) || Target == null)
+            {
+                return;
+            }
+            if (KzKarthusMenu.comboW() && W.IsReady() && Target.IsValidTarget(W.Range) && Player.ManaPercent >= KzKarthusMenu.comboW1())
+            {
+                W.Cast(Target.Position);
+            }
+            if (KzKarthusMenu.comboQ() && Q.IsReady() && Target.IsValidTarget(Q.Range))
+            {
+                if (Prediction.Position.PredictCircularMissile(Target, Q.Range, Q.Width, Q.CastDelay, Q.Speed).HitChance >= HitChance.High)
+                {
+                    Q.Cast(Target);
+                }
+            }
+            if (KzKarthusMenu.comboE() && E.IsReady() && Target.IsValidTarget(E.Range) && Player.ManaPercent >= KzKarthusMenu.comboE2())
+            {
+                if (Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 1)
+                    E.Cast();
+            }
+            else
+            {
+                if (Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 2)
+                        E.Cast();
+            }
+            if (KzKarthusMenu.comboR() && R.IsReady() && Target.IsValidTarget(R.Range) && Target.Health + Target.AttackShield < Player.GetSpellDamage(Target, SpellSlot.R, DamageLibrary.SpellStages.Default))
+            {
+                R.Cast();
+            }
+        }
+    }
+    }
+
+
