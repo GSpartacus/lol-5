@@ -129,12 +129,12 @@ namespace KzKarthus
 
         private static void AntiGapCloser(AIHeroClient sender, Gapcloser.GapcloserEventArgs e)
         {
-            if (!e.Sender.IsValidTarget() || !KzKarthusMenu.gapcloserQ() || e.Sender.Type != Player.Type || !e.Sender.IsEnemy)
+            if (!e.Sender.IsValidTarget() || !KzKarthusMenu.gapcloserW() || e.Sender.Type != Player.Type || !e.Sender.IsEnemy)
             {
                 return;
             }
 
-            Q.Cast(e.Sender);
+            W.Cast(e.Sender);
         }
         public static void ignite()
         {
@@ -154,6 +154,7 @@ namespace KzKarthus
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo)) OnCombo();
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Harass)) OnHarrass();
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear)) OnLaneClear();
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LastHit)) OnLastHit();
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.JungleClear)) OnJungle();
             KillSteal();
             AutoCast();
@@ -227,6 +228,17 @@ namespace KzKarthus
             {
                 if (Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 2)
                     E.Cast();
+            }
+        }
+        static void OnLastHit()
+        {
+            var source = ObjectManager.Get<Obj_AI_Minion>().Where(x => x.IsEnemy && x.IsValidTarget(Q.Range)).OrderBy(x => x.Health).FirstOrDefault();
+            if (source == null || !source.IsValid) return;
+            if (Orbwalker.IsAutoAttacking) return;
+            Orbwalker.ForcedTarget = null;
+            if (KzKarthusMenu.lcQ2() && Player.GetSpellDamage(source, SpellSlot.Q) >= source.Health && !source.IsDead && Player.ManaPercent >= KzKarthusMenu.lcM())
+            {
+                Q.Cast(source);
             }
         }
         public static void OnJungle()
