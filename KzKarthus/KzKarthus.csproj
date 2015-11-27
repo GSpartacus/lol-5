@@ -54,7 +54,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MyMobs.cs" />
     <Compile Include="MyActivator.cs" />
     <Compile Include="MyMenu.cs" />
     <Compile Include="Program.cs" />
