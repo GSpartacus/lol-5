@@ -92,7 +92,8 @@ namespace KzKarthus
             MyHarass.Add("harass.QE", new Slider("Min. Mana for Harass Spells %", 35, 0, 100));
             MyHarass.AddSeparator();
             MyHarass.AddGroupLabel("KillSteal Settings:");
-            MyHarass.Add("killsteal.Q", new CheckBox("Use Wall of Pain (W Spell)", false));
+            MyHarass.Add("killsteal.Q", new CheckBox("Use Lay Waste (Q Spell)", false));
+            MyHarass.Add("killsteal.R", new CheckBox("Use Requiem (R Spell)", false));
             MyHarass.AddSeparator();
             MyHarass.AddGroupLabel("Pro Tips");
             MyHarass.AddLabel(" -Remember to play safe and don't be a teemo");
@@ -101,28 +102,18 @@ namespace KzKarthus
         {
             MySpells = MyMenu.AddSubMenu("Spells Settings");
             MySpells.AddSeparator();
-            MySpells.AddGroupLabel("Smite settings");
-            MySpells.Add("SRU_Red", new CheckBox("Smite Red Buff"));
-            MySpells.Add("SRU_Blue", new CheckBox("Smite Blue Buff"));
-            MySpells.Add("SRU_Dragon", new CheckBox("Smite Dragon"));
-            MySpells.Add("SRU_Baron", new CheckBox("Smite Baron"));
-            MySpells.Add("SRU_Gromp", new CheckBox("Smite Gromp"));
-            MySpells.Add("SRU_Murkwolf", new CheckBox("Smite Wolf"));
-            MySpells.Add("SRU_Razorbeak", new CheckBox("Smite Bird"));
-            MySpells.Add("SRU_Krug", new CheckBox("Smite Golem"));
-            MySpells.Add("Sru_Crab", new CheckBox("Smite Crab"));
-            MySpells.AddGroupLabel("Spells settings:");
-            MySpells.AddSeparator();
             MySpells.AddGroupLabel("Heal settings:");
             MySpells.Add("spells.Heal.Hp", new Slider("Use Heal when HP is lower than {0}(%)", 30, 1, 100));
             MySpells.AddGroupLabel("Ignite settings:");
             MySpells.Add("spells.Ignite.Focus", new Slider("Use Ignite when target HP is lower than {0}(%)", 10, 1, 100));
+            MySpells.AddGroupLabel("Barrier settings:");
+            MySpells.Add("spells.Barrier.Hp", new Slider("Use Barrier when HP is lower than {0}(%)", 10, 1, 100));
         }
         public static void MyOtherFunctionsPage()
         {
             MyOtherFunctions = MyMenu.AddSubMenu("Misc Menu", "othermenu");
             MyOtherFunctions.AddGroupLabel("Anti Gap Closer/Interrupt");
-            MyOtherFunctions.Add("gapcloser.Q", new CheckBox("Lay Waste (Q Spell)"));
+            MyOtherFunctions.Add("gapcloser.W", new CheckBox("Use Wall of Pain  (W Spell)"));
             MyOtherFunctions.AddSeparator();
             MyOtherFunctions.AddGroupLabel("Level Up Function");
             MyOtherFunctions.Add("lvlup", new CheckBox("Auto Level Up Spells:", false));
@@ -242,6 +233,10 @@ namespace KzKarthus
         {
             return MySpells["spells.Heal.HP"].Cast<Slider>().CurrentValue;
         }
+        public static float spellsBarrierHP()
+        {
+            return MySpells["spells.Barrier.HP"].Cast<Slider>().CurrentValue;
+        }
         public static float spellsIgniteFocus()
         {
             return MySpells["spells.Ignite.Focus"].Cast<Slider>().CurrentValue;
@@ -254,9 +249,9 @@ namespace KzKarthus
         {
             return MyOtherFunctions["lvlup"].Cast<CheckBox>().CurrentValue;
         }
-        public static bool gapcloserQ()
+        public static bool gapcloserW()
         {
-            return MyOtherFunctions["gapcloser.Q"].Cast<CheckBox>().CurrentValue;
+            return MyOtherFunctions["gapcloser.W"].Cast<CheckBox>().CurrentValue;
         }
     }
 }
