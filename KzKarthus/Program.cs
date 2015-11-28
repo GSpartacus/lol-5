@@ -42,7 +42,7 @@ namespace KzKarthus
             Game.OnUpdate += OnGameUpdate;
 
             #region Skill
-            Q = new Spell.Skillshot(SpellSlot.Q, 875, SkillShotType.Circular, 1000, int.MaxValue, 160);
+            Q = new Spell.Skillshot(SpellSlot.Q, 975, SkillShotType.Circular, 1000, int.MaxValue, 160);
             W = new Spell.Skillshot(SpellSlot.W, 1000, SkillShotType.Circular, 500, int.MaxValue, 70);
             E = new Spell.Active(SpellSlot.E, 505);
             R = new Spell.Skillshot(SpellSlot.R, 25000, SkillShotType.Circular, 3000, int.MaxValue, int.MaxValue);
