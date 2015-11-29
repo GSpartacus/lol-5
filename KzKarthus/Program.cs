@@ -136,6 +136,8 @@ namespace KzKarthus
         {
             if (MyActivator.heal != null)
                 Heal();
+            if (MyActivator.barrier != null)
+                barrier();
             if (MyActivator.ignite != null)
                 ignite();
             Player.SetSkinId(KzKarthusMenu.skinId());
@@ -149,6 +151,16 @@ namespace KzKarthus
 
             return predictedhealth > playerInfo.MaxHealth ? playerInfo.MaxHealth : predictedhealth;
         }
+        private static void Zhonya()
+        {
+            if (KzKarthusMenu.SpellsZhonyaCheck() && MyActivator.Zhonya.IsReady() && MyActivator.Zhonya.IsOwned())
+            {
+                    if (Player.HealthPercent <= KzKarthusMenu.SpellsZhonyaHP() && Player.CountEnemiesInRange(Q.Range) >= KzKarthusMenu.SpellsZhonyaEnemies())
+                    {
+                        MyActivator.Zhonya.Cast();
+                    }
+                }
+            }
         public static void LevelUpSpells()
         {
             int qL = Player.Spellbook.GetSpell(SpellSlot.Q).Level + qOff;
@@ -190,6 +202,11 @@ namespace KzKarthus
             if (MyActivator.heal.IsReady() && Player.HealthPercent <= KzKarthusMenu.spellsHealHP())
                 MyActivator.heal.Cast();
         }
+        public static void barrier()
+        {
+            if (MyActivator.barrier.IsReady() && Player.HealthPercent <= KzKarthusMenu.spellsBarrierHP())
+                MyActivator.barrier.Cast();
+        }
         private static void GameOnTick(EventArgs args)
         {
             if (KzKarthusMenu.lvlup()) LevelUpSpells();
@@ -200,6 +217,7 @@ namespace KzKarthus
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.JungleClear)) OnJungle();
             KillSteal();
             AutoCast();
+            Zhonya();
         }
         public static void AutoCast()
         {
