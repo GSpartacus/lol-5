@@ -6,8 +6,11 @@ using EloBuddy.SDK.Menu.Values;
 using EloBuddy.SDK.Rendering;
 using Color = System.Drawing.Color;
 using System;
+using System.Drawing;
 using System.Linq;
 using SharpDX;
+using Font = SharpDX.Direct3D9.Font;
+using SharpDX.Direct3D9;
 
 namespace KzKarthus
 {
@@ -25,6 +28,8 @@ namespace KzKarthus
         public static Spell.Skillshot W;
         public static Spell.Active E;
         public static Spell.Skillshot R;
+        private static Font Tahoma16B;
+
         internal static void Main(string[] args)
         {
             Loading.OnLoadingComplete += OnLoadingComplete;
@@ -36,13 +41,14 @@ namespace KzKarthus
             AbilitySequence = new int[] { 1, 3, 1, 2, 1, 4, 1, 3, 1, 3, 4, 3, 3, 2, 2, 4, 2, 2 };
             Chat.Print("KzKarthus Loaded!", Color.CornflowerBlue);
             Chat.Print("Enjoy the game and DONT FEED!", Color.Red);
+            Tahoma16B = new Font(Drawing.Direct3DDevice, new FontDescription { FaceName = "Tahoma", Height = 16, Weight = FontWeight.Bold, OutputPrecision = FontPrecision.Default, Quality = FontQuality.ClearType });
             KzKarthusMenu.loadMenu();
             Game.OnTick += GameOnTick;
             MyActivator.loadSpells();
             Game.OnUpdate += OnGameUpdate;
 
             #region Skill
-            Q = new Spell.Skillshot(SpellSlot.Q, 975, SkillShotType.Circular, 1000, int.MaxValue, 160);
+            Q = new Spell.Skillshot(SpellSlot.Q, 950, SkillShotType.Circular, 1000, int.MaxValue, 160);
             W = new Spell.Skillshot(SpellSlot.W, 1000, SkillShotType.Circular, 500, int.MaxValue, 70);
             E = new Spell.Active(SpellSlot.E, 505);
             R = new Spell.Skillshot(SpellSlot.R, 25000, SkillShotType.Circular, 3000, int.MaxValue, int.MaxValue);
@@ -96,9 +102,36 @@ namespace KzKarthus
 
                     new Circle() { Color = Color.SkyBlue, Radius = 500, BorderWidth = 2f }.Draw(Player.Position);
                 }
+                var EnemiesTxt = "";
+
+                var enemies = EntityManager.Heroes.Enemies.Where(a => a.IsEnemy && a.IsValid);
+                Vector2 WTS = Drawing.WorldToScreen(Player.Position);
+
+                foreach (var enemy in enemies)
+                {
+                    if ((GetTargetHealth(enemy) - Player.GetSpellDamage(enemy, SpellSlot.R, DamageLibrary.SpellStages.Default)) <= 0)
+                    {
+                        if (!enemy.IsDead)
+                        {
+                            EnemiesTxt = enemy.BaseSkinName + " | ";
+
+                        }
+                    }
+                }
+
+                if (EnemiesTxt != "")
+                {
+                    if (KzKarthusMenu.alertR() && R.IsReady())
+                    {
+                        DrawFontTextScreen(Tahoma16B, "R Alert : " + EnemiesTxt + "Killable", (float)(WTS[0] - 150), (float)(WTS[1] + 80), SharpDX.Color.Red);
+                    }
+                }
             }
         }
-      
+        public static void DrawFontTextScreen(Font vFont, string vText, float vPosX, float vPosY, ColorBGRA vColor)
+        {
+            vFont.DrawText(null, vText, (int)vPosX, (int)vPosY, vColor);
+        }
         private static void OnGameUpdate(EventArgs args)
         {
             if (MyActivator.heal != null)
@@ -106,6 +139,15 @@ namespace KzKarthus
             if (MyActivator.ignite != null)
                 ignite();
             Player.SetSkinId(KzKarthusMenu.skinId());
+        }
+        public static float GetTargetHealth(AIHeroClient playerInfo)
+        {
+            if (playerInfo.IsVisible)
+                return playerInfo.Health;
+
+            var predictedhealth = playerInfo.Health + playerInfo.HPRegenRate * (R.CastDelay / 1000);
+
+            return predictedhealth > playerInfo.MaxHealth ? playerInfo.MaxHealth : predictedhealth;
         }
         public static void LevelUpSpells()
         {
@@ -202,10 +244,6 @@ namespace KzKarthus
                     {
                         Q.Cast(Target);
                     }
-                }
-                if (KzKarthusMenu.killstealR() && R.IsReady() && Target.IsValidTarget(R.Range) && Target.Health + Target.AttackShield < Player.GetSpellDamage(Target, SpellSlot.R, DamageLibrary.SpellStages.Default))
-                {
-                    R.Cast();
                 }
             }
         }
