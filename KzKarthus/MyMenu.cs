@@ -5,7 +5,7 @@ namespace KzKarthus
 {
     class KzKarthusMenu
     {
-        public static Menu MyMenu, MyCombo, MyDraw, MyHarass, MyActivator, MySpells, MyFarm, MyOtherFunctions;
+        public static Menu MyMenu, MyCombo, MyDraw, MyHarass, MySpells, MyFarm, MyOtherFunctions;
         public static void loadMenu()
         {
             MyKarthusPage();
@@ -93,7 +93,6 @@ namespace KzKarthus
             MyHarass.AddSeparator();
             MyHarass.AddGroupLabel("KillSteal Settings:");
             MyHarass.Add("killsteal.Q", new CheckBox("Use Lay Waste (Q Spell)", false));
-            MyHarass.Add("killsteal.R", new CheckBox("Use Requiem (R Spell)", false));
             MyHarass.AddSeparator();
             MyHarass.AddGroupLabel("Pro Tips");
             MyHarass.AddLabel(" -Remember to play safe and don't be a teemo");
@@ -119,7 +118,7 @@ namespace KzKarthus
             MyOtherFunctions.Add("lvlup", new CheckBox("Auto Level Up Spells:", false));
             MyOtherFunctions.AddSeparator();
             MyOtherFunctions.AddGroupLabel("Skin settings");
-            MyOtherFunctions.Add("skin.Id", new Slider("Skin Editor", 1, 0, 2));
+            MyOtherFunctions.Add("skin.Id", new Slider("Skin Editor", 2, 0, 4));
         }
         public static bool nodraw()
         {
@@ -224,10 +223,6 @@ namespace KzKarthus
         public static bool killstealQ()
         {
             return MyHarass["killsteal.Q"].Cast<CheckBox>().CurrentValue;
-        }
-        public static bool killstealR()
-        {
-            return MyHarass["killsteal.R"].Cast<CheckBox>().CurrentValue;
         }
         public static float spellsHealHP()
         {
