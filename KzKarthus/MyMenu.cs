@@ -55,7 +55,6 @@ namespace KzKarthus
             MyCombo.Add("combo.Q", new CheckBox("Use Lay Waste (Q Spell)"));
             MyCombo.Add("combo.W", new CheckBox("Use Wall of Pain  (W Spell)"));
             MyCombo.Add("combo.E", new CheckBox("Use Defile (E Spell)"));
-            MyCombo.Add("combo.R", new CheckBox("Use Requiem (R Spell)"));
             MyCombo.Add("combo.AC", new CheckBox("Use Automatic Combo if Death"));
             MyCombo.AddSeparator();
             MyCombo.AddGroupLabel("Combo preferences:");
@@ -167,10 +166,6 @@ namespace KzKarthus
         public static bool comboE()
         {
             return MyCombo["combo.E"].Cast<CheckBox>().CurrentValue;
-        }
-        public static bool comboR()
-        {
-            return MyCombo["combo.R"].Cast<CheckBox>().CurrentValue;
         }
         public static bool comboAC()
         {
