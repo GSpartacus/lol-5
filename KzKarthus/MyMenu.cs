@@ -109,7 +109,7 @@ namespace KzKarthus
             MySpells.AddGroupLabel("Zhonya settings:");
             MySpells.Add("spells.Zhonya.Check", new CheckBox("Use Zhonya", false));
             MySpells.Add("spells.Zhonya.Hp", new Slider("Use Zhonya when HP is lower than {0}(%)", 10, 1, 100));
-            MySpells.Add("spells.Zhonya.Enemies", new Slider("Use Zhonya when there are min {0} enemies", 10, 1, 100));
+            MySpells.Add("spells.Zhonya.Enemies", new Slider("Use Zhonya when there are min {0} enemies", 3, 1, 5));
         }
         public static void MyOtherFunctionsPage()
         {
