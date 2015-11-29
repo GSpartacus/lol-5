@@ -107,6 +107,10 @@ namespace KzKarthus
             MySpells.Add("spells.Ignite.Focus", new Slider("Use Ignite when target HP is lower than {0}(%)", 10, 1, 100));
             MySpells.AddGroupLabel("Barrier settings:");
             MySpells.Add("spells.Barrier.Hp", new Slider("Use Barrier when HP is lower than {0}(%)", 10, 1, 100));
+            MySpells.AddGroupLabel("Zhonya settings:");
+            MySpells.Add("spells.Zhonya.Check", new CheckBox("Use Zhonya", false));
+            MySpells.Add("spells.Zhonya.Hp", new Slider("Use Zhonya when HP is lower than {0}(%)", 10, 1, 100));
+            MySpells.Add("spells.Zhonya.Enemies", new Slider("Use Zhonya when there are min {0} enemies", 10, 1, 100));
         }
         public static void MyOtherFunctionsPage()
         {
@@ -231,6 +235,18 @@ namespace KzKarthus
         public static float spellsBarrierHP()
         {
             return MySpells["spells.Barrier.HP"].Cast<Slider>().CurrentValue;
+        }
+        public static bool SpellsZhonyaCheck()
+        {
+            return MySpells["spells.Zhonya.Check"].Cast<CheckBox>().CurrentValue;
+        }
+        public static float SpellsZhonyaHP()
+        {
+            return MySpells["spells.Zhonya.HP"].Cast<Slider>().CurrentValue;
+        }
+        public static float SpellsZhonyaEnemies()
+        {
+            return MySpells["spells.Zhonya.Enemies"].Cast<Slider>().CurrentValue;
         }
         public static float spellsIgniteFocus()
         {
