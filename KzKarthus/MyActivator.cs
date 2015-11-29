@@ -1,4 +1,4 @@
-using System.Threading;
+
 using EloBuddy;
 using EloBuddy.SDK;
 
@@ -7,8 +7,7 @@ namespace KzKarthus
     class MyActivator
     {
         public static Spell.Targeted ignite;
-        public static Item Zhonya;
-        public static Spell.Targeted smite;
+        public static Item Zhonya, CorruptPot, HuntersPot, RefillPotion;
         public static Spell.Active heal, barrier;
         public static void loadSpells()
         {
@@ -27,6 +26,10 @@ namespace KzKarthus
             else if (ObjectManager.Player.Spellbook.GetSpell(SpellSlot.Summoner2).Name.Contains("barrier"))
                 barrier = new Spell.Active(SpellSlot.Summoner2);
             Zhonya = new Item((int)ItemId.Zhonyas_Hourglass);
+            CorruptPot = new Item((ItemId) 2033);
+            HuntersPot = new Item((ItemId) 2032);
+            RefillPotion = new Item((ItemId) 2031);
+
         }
     }
 }
