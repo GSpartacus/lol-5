@@ -370,10 +370,6 @@ namespace KzKarthus
                 if (Player.Spellbook.GetSpell(SpellSlot.E).ToggleState == 2)
                         E.Cast();
             }
-            if (KzKarthusMenu.comboR() && R.IsReady() && Target.IsValidTarget(R.Range) && Target.Health + Target.AttackShield < Player.GetSpellDamage(Target, SpellSlot.R, DamageLibrary.SpellStages.Default))
-            {
-                R.Cast();
-            }
         }
     }
     }
